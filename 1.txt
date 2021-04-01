@@ -1,0 +1,90 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package ru.inversion;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.logging.Level; // лишнее убрать
+import java.util.logging.Logger; // лишнее убрать
+import javax.jws.WebMethod;
+import javax.jws.WebParam;
+import javax.jws.WebResult;
+import javax.jws.WebService;
+import javax.naming.NamingException; // лишнее заменить на Throwable
+import ru.inversion.gateclasses.classes.Result;
+import ru.inversion.gateclasses.utils.DBWorker;
+import ru.inversion.gateclasses.utils.ObjStringConverter;
+import ru.inversion.gateclasses.utils.Prot;
+import ru.inversion.gateclasses.utils.XxiConnector;
+
+/**
+ *
+ * @author Vaschenko
+ */
+@WebService(serviceName = "WebService0")
+public class Web_Service0 {
+    
+    @WebMethod(operationName = "method0")
+    @WebResult(name = "Web_Out_Result")
+    public Web_Out_Result method0(@WebParam(name = "Web_In_Request") Web_In_Request webInRequest)throws Throwable{
+    
+        Web_Out_Result result = null;
+        Connection connection = null;
+        int countConnection = 0;
+        String in_param = webInRequest.getFpz() + (char)Integer.parseInt("01", 16) + ObjStringConverter.objToString(webInRequest);
+        
+        while(true){
+               XxiConnector xxiConnector = new XxiConnector();
+               connection = xxiConnector.logon(webInRequest.getXXIUserId(), webInRequest.getXXIPass());
+               if (countConnection > 3) {
+					if(result == null){
+                        result = new Web_Out_Result();
+                        result.setErr("Ошибка выполнения сервиса");
+						connection.rollback();
+                    }
+                    break;
+                }
+                     try{
+                Result res = DBWorker.procCall(0, in_param, connection);
+                if (res != null) {
+                    String err = res.getErr();
+                    if (err != null && (err.contains("ORA-6508") || err.contains("ORA-4068") ||
+                            err.contains("ORA-4061") || err.contains("ORA-4065"))) {
+                            throw new SQLException(null, null, 6508, new Throwable());
+                    }else{
+                        err = null;
+                    }
+                    if (err == null) {
+                            result = (Web_Out_Result) ObjStringConverter.fillObjFromStr(Web_Out_Result.class, res.getOutParams());
+                            connection.commit();                        
+                    }else{
+                        result = new Web_Out_Result();
+                        result.setErr(res.getErr());
+                        result.setRetCode(res.getRetCode());
+                        connection.rollback();
+                    }
+                    break;
+                }else
+                        return null;                        
+            } catch (Throwable ex) {
+                countConnection++;
+                ex.printStackTrace();
+               if (ex instanceof SQLException) {
+                    if (((SQLException) ex).getErrorCode() == 4068 || ((SQLException) ex).getErrorCode() == 4061 
+                            || ((SQLException) ex).getErrorCode() == 6508 || ((SQLException) ex).getErrorCode() == 4065) {                       
+                        DBWorker.getPool().close();
+                    }                    
+                }
+                Prot.writeProtocol("Ошибка выполнения сервиса", ex, "Web_Service0");
+            }finally{
+                if (connection != null) {
+                    connection.close();
+                    }
+            }           
+        }  
+        return result;
+    }
+}
