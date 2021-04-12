@@ -7,6 +7,9 @@
 12345 Good morning (from branch add-feature2)
 >>>>>>> add-feature2
 
+line from user1
+
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
