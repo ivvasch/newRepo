@@ -1,12 +1,6 @@
 &&&
-<<<<<<< HEAD
-12345 Good evening! (from branch master)
 
-***********************************************
-=======
-12345 Good morning (from branch add-feature2)
->>>>>>> add-feature2
-
+another line from user1
 line from user1
 
 
