@@ -1,7 +1,11 @@
 &&&
+<<<<<<< HEAD
 12345 Good evening! (from branch master)
 
 ***********************************************
+=======
+12345 Good morning (from branch add-feature2)
+>>>>>>> add-feature2
 
 /*
  * To change this license header, choose License Headers in Project Properties.
